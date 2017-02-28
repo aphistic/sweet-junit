@@ -3,7 +3,6 @@ package junit
 import (
 	"bytes"
 	"encoding/xml"
-	"flag"
 	"fmt"
 	"math"
 	"os"
@@ -13,14 +12,6 @@ import (
 	"github.com/aphistic/sweet"
 )
 
-var (
-	junitOutput string
-)
-
-func init() {
-	flag.StringVar(&junitOutput, "junit.output", "", "path to write a junit XML file after tests complete")
-}
-
 func roundTime(duration time.Duration) float64 {
 	seconds := float64(duration) / float64(time.Second)
 	ms := math.Floor(seconds * 10000)
@@ -29,6 +20,7 @@ func roundTime(duration time.Duration) float64 {
 
 type JUnitPlugin struct {
 	suites *testSuites
+	output string
 }
 
 func NewPlugin() *JUnitPlugin {
@@ -39,6 +31,23 @@ func NewPlugin() *JUnitPlugin {
 
 func (p *JUnitPlugin) Name() string {
 	return "JUnit Output"
+}
+
+func (p *JUnitPlugin) Options() *sweet.PluginOptions {
+	return &sweet.PluginOptions{
+		Prefix: "junit",
+		Options: map[string]*sweet.PluginOption{
+			"output": &sweet.PluginOption{
+				Help: "Results of the test run will be written in JUnit format to the path provided",
+			},
+		},
+	}
+}
+
+func (p *JUnitPlugin) SetOption(name, value string) {
+	if name == "output" {
+		p.output = value
+	}
 }
 
 func (p *JUnitPlugin) Starting() {
@@ -78,11 +87,11 @@ func (p *JUnitPlugin) SuiteFinished(suite string, stats *sweet.SuiteFinishedStat
 	s.Time = roundTime(stats.Time)
 }
 func (p *JUnitPlugin) Finished() {
-	if junitOutput == "" {
+	if p.output == "" {
 		return
 	}
 
-	of, err := os.OpenFile(junitOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	of, err := os.OpenFile(p.output, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Printf("Unable to open file for JUnit output: %s\n", err)
 		os.Exit(1)
