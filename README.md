@@ -18,8 +18,9 @@ func Test(t *testing.T) {
 ```
 
 Once the plugin is registered with sweet, you can specify the file to write the
-output to by passing the `-junit.output` flag when running `go test`, such as:
+output to by passing the `-sweet.opt` when running `go test` and providing the
+`junit.output` key with the path you'd like to write the junit file to, such as:
 
 ```bash
-$ go test -junit.output junit.xml
+$ go test -sweet.opt "junit.output=junit.xml"
 ```
