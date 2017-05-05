@@ -79,7 +79,14 @@ func (p *JUnitPlugin) TestFailed(suite, test string, stats *sweet.TestFailedStat
 		ClassName: suite,
 		Time:      roundTime(stats.Time),
 	}
-	tc.SetFailure(stats.File, stats.Line, stats.Message)
+
+	file := "<unknown>"
+	line := 0
+	if len(stats.Frames) > 0 {
+		file = stats.Frames[0].File
+		line = stats.Frames[0].Line
+	}
+	tc.SetFailure(file, line, stats.Message)
 	s.AddTestCase(tc)
 }
 func (p *JUnitPlugin) SuiteFinished(suite string, stats *sweet.SuiteFinishedStats) {
