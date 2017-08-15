@@ -89,6 +89,8 @@ func (p *JUnitPlugin) TestFailed(suite, test string, stats *sweet.TestFailedStat
 	tc.SetFailure(file, line, stats.Message)
 	s.AddTestCase(tc)
 }
+func (p *JUnitPlugin) TestSkipped(suite, test string, stats *sweet.TestSkippedStats) {
+}
 func (p *JUnitPlugin) SuiteFinished(suite string, stats *sweet.SuiteFinishedStats) {
 	s := p.suites.GetSuite(suite)
 	s.Time = roundTime(stats.Time)
