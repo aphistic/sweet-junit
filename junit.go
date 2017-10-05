@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/aphistic/sweet"
@@ -62,7 +63,7 @@ func (p *JUnitPlugin) TestStarting(suite, test string) {
 }
 func (p *JUnitPlugin) TestPassed(suite, test string, stats *sweet.TestPassedStats) {
 	s := p.suites.GetSuite(suite)
-	s.Tests++
+	atomic.AddInt64(&s.Tests, 1)
 	s.AddTestCase(&testCase{
 		Name:      test,
 		ClassName: suite,
@@ -71,8 +72,8 @@ func (p *JUnitPlugin) TestPassed(suite, test string, stats *sweet.TestPassedStat
 }
 func (p *JUnitPlugin) TestFailed(suite, test string, stats *sweet.TestFailedStats) {
 	s := p.suites.GetSuite(suite)
-	s.Tests++
-	s.Failures++
+	atomic.AddInt64(&s.Tests, 1)
+	atomic.AddInt64(&s.Failures, 1)
 
 	tc := &testCase{
 		Name:      test,

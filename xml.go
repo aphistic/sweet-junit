@@ -52,18 +52,21 @@ func (s *testSuites) GetSuite(name string) *testSuite {
 }
 
 type testSuite struct {
-	Name      string  `xml:"name,attr"`
-	ID        int     `xml:"id,attr"`
-	Package   string  `xml:"package,attr"`
-	Timestamp string  `xml:"timestamp,attr"`
-	Hostname  string  `xml:"hostname,attr"`
-	Tests     int     `xml:"tests,attr"`
-	Failures  int     `xml:"failures,attr"`
-	Errors    int     `xml:"errors,attr"`
-	Time      float64 `xml:"time,attr"`
+	Name      string `xml:"name,attr"`
+	ID        int    `xml:"id,attr"`
+	Package   string `xml:"package,attr"`
+	Timestamp string `xml:"timestamp,attr"`
+	Hostname  string `xml:"hostname,attr"`
+
+	Tests    int64   `xml:"tests,attr"`
+	Failures int64   `xml:"failures,attr"`
+	Errors   int64   `xml:"errors,attr"`
+	Time     float64 `xml:"time,attr"`
 
 	Properties *suiteProperties `xml:"properties,omitempty"`
-	TestCases  []*testCase      `xml:"testcase"`
+
+	testCaseLock sync.Mutex
+	TestCases    []*testCase `xml:"testcase"`
 }
 
 func (s *testSuite) AddProperty(name, value string) {
@@ -78,6 +81,9 @@ func (s *testSuite) AddProperty(name, value string) {
 	})
 }
 func (s *testSuite) AddTestCase(newCase *testCase) {
+	s.testCaseLock.Lock()
+	defer s.testCaseLock.Unlock()
+
 	if s.TestCases == nil {
 		s.TestCases = make([]*testCase, 1)
 	}
