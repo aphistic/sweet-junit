@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -11,6 +12,8 @@ import (
 // http://llg.cubic.org/docs/junit/
 
 type testSuites struct {
+	suiteLock sync.Mutex
+
 	XMLName xml.Name     `xml:"testsuites"`
 	Suites  []*testSuite `xml:"testsuite"`
 }
@@ -21,11 +24,10 @@ func newTestSuites() *testSuites {
 	}
 }
 
-func (s *testSuites) AddSuite(suite *testSuite) {
-	s.Suites = append(s.Suites, suite)
-}
-
 func (s *testSuites) GetSuite(name string) *testSuite {
+	s.suiteLock.Lock()
+	defer s.suiteLock.Unlock()
+
 	for _, suite := range s.Suites {
 		if suite.Name == name {
 			return suite
@@ -44,7 +46,7 @@ func (s *testSuites) GetSuite(name string) *testSuite {
 		Timestamp: time.Now().Format("2006-01-02T15:04:05"),
 		Hostname:  hostname,
 	}
-	s.AddSuite(newSuite)
+	s.Suites = append(s.Suites, newSuite)
 
 	return newSuite
 }
