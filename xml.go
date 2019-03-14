@@ -52,15 +52,18 @@ func (s *testSuites) GetSuite(name string) *testSuite {
 }
 
 type testSuite struct {
+	// These must be at the top of the struct due to how 64 bit values are
+	// handled by the atomic package in 32 bit Go builds
+	Tests    int64   `xml:"tests,attr"`
+	Failures int64   `xml:"failures,attr"`
+	Errors   int64   `xml:"errors,attr"`
+
 	Name      string `xml:"name,attr"`
 	ID        int    `xml:"id,attr"`
 	Package   string `xml:"package,attr"`
 	Timestamp string `xml:"timestamp,attr"`
 	Hostname  string `xml:"hostname,attr"`
 
-	Tests    int64   `xml:"tests,attr"`
-	Failures int64   `xml:"failures,attr"`
-	Errors   int64   `xml:"errors,attr"`
 	Time     float64 `xml:"time,attr"`
 
 	Properties *suiteProperties `xml:"properties,omitempty"`
