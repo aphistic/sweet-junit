@@ -24,6 +24,8 @@ type JUnitPlugin struct {
 	output string
 }
 
+var _ sweet.Plugin = &JUnitPlugin{}
+
 func NewPlugin() *JUnitPlugin {
 	return &JUnitPlugin{
 		suites: newTestSuites(),
@@ -58,26 +60,26 @@ func (p *JUnitPlugin) SuiteStarting(suite string) {
 	s := p.suites.GetSuite(suite)
 	s.AddProperty("go.version", runtime.Version())
 }
-func (p *JUnitPlugin) TestStarting(suite, test string) {
+func (p *JUnitPlugin) TestStarting(testName *sweet.TestName) {
 
 }
-func (p *JUnitPlugin) TestPassed(suite, test string, stats *sweet.TestPassedStats) {
-	s := p.suites.GetSuite(suite)
+func (p *JUnitPlugin) TestPassed(testName *sweet.TestName, stats *sweet.TestPassedStats) {
+	s := p.suites.GetSuite(testName.SuiteName)
 	atomic.AddInt64(&s.Tests, 1)
 	s.AddTestCase(&testCase{
-		Name:      test,
-		ClassName: suite,
+		Name:      testName.String(),
+		ClassName: testName.SuiteName,
 		Time:      roundTime(stats.Time),
 	})
 }
-func (p *JUnitPlugin) TestFailed(suite, test string, stats *sweet.TestFailedStats) {
-	s := p.suites.GetSuite(suite)
+func (p *JUnitPlugin) TestFailed(testName *sweet.TestName, stats *sweet.TestFailedStats) {
+	s := p.suites.GetSuite(testName.SuiteName)
 	atomic.AddInt64(&s.Tests, 1)
 	atomic.AddInt64(&s.Failures, 1)
 
 	tc := &testCase{
-		Name:      test,
-		ClassName: suite,
+		Name:      testName.String(),
+		ClassName: testName.SuiteName,
 		Time:      roundTime(stats.Time),
 	}
 
@@ -90,7 +92,7 @@ func (p *JUnitPlugin) TestFailed(suite, test string, stats *sweet.TestFailedStat
 	tc.SetFailure(file, line, stats.Message)
 	s.AddTestCase(tc)
 }
-func (p *JUnitPlugin) TestSkipped(suite, test string, stats *sweet.TestSkippedStats) {
+func (p *JUnitPlugin) TestSkipped(testName *sweet.TestName, stats *sweet.TestSkippedStats) {
 }
 func (p *JUnitPlugin) SuiteFinished(suite string, stats *sweet.SuiteFinishedStats) {
 	s := p.suites.GetSuite(suite)
